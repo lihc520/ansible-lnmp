@@ -1,0 +1,45 @@
+[Unit]
+Description=Advanced key-value store
+After=network.target
+Documentation=http://redis.io/documentation, man:redis-server(1)
+
+[Service]
+Type=forking
+ExecStart={{ redis_root_dir }}/bin/redis-server {{ redis_root_dir }}/etc/redis.conf
+PIDFile={{ redis_run_dir }}/redis.pid
+TimeoutStopSec=0
+Restart=always
+User=redis
+Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=2755
+
+UMask=007
+PrivateTmp=yes
+LimitNOFILE=65535
+PrivateDevices=yes
+ProtectHome=yes
+#ReadOnlyDirectories=/
+ReadWritePaths=-{{ redis_data_dir }}
+ReadWritePaths=-{{ redis_log_dir }}
+ReadWritePaths=-{{ redis_run_dir }}
+
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_SETGID CAP_SETUID CAP_SYS_RESOURCE
+MemoryDenyWriteExecute=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# redis-server can write to its own config file when in cluster mode so we
+# permit writing there by default. If you are not using this feature, it is
+# recommended that you replace the following lines with "ProtectSystem=full".
+ProtectSystem=true
+ReadWriteDirectories=-{{ redis_root_dir }}/etc
+
+[Install]
+WantedBy=multi-user.target
+Alias=redis.service

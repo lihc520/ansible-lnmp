@@ -1,0 +1,43 @@
+---
+- name: Install dependencies
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+  ignore_errors: true
+  when: ansible_os_family == "Debian"
+
+- name: Install dependencies RedHat
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2 
+  ignore_errors: true
+  when: ansible_os_family == "RedHat"        
+
+- name: Install docker
+  shell: |
+    wget -qO- https://get.docker.com/ | sh 
+    sudo usermod -aG docker webuser
+
+- name: check docker-compose sha256
+  uri:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-{{ ansible_machine }}.sha256
+    return_content: yes
+  register: docker_compose_checksum
+
+- name: Install docker-compose 
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-{{ ansible_machine }}
+    checksum: "sha256:{{ docker_compose_checksum.content.split(' ') | first }}"
+    dest: /usr/local/bin/docker-compose
+    mode: "0755"
+    owner: root   
+

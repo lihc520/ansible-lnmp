@@ -1,0 +1,50 @@
+[os]
+[os:children] # 发行版 {{{
+os.debian
+os.redhat
+# }}}
+
+[os.redhat:children] 
+os.redhat7
+os.centos
+
+[os.redhat7] 
+
+
+
+[os.centos:children] 
+os.centos6
+os.centos7
+
+[os.centos6] 
+
+
+[os.centos7] 
+c7-web
+staging
+
+
+[os.debian:children] # debian 系 {{{
+os.ubuntu
+os.debian9
+os.debian10
+# }}}
+
+[os.ubuntu:children] # ubuntu子类 {{{1
+os.ubuntu.lts
+
+[os.ubuntu.lts:children] # ubuntu发行版子类 {{{2
+os.u1604
+os.u1804
+os.u2004
+
+[os.u1604]
+
+[os.u1804]
+
+[os.u2004]
+web
+wiz-k8s
+ub22-staging
+ub22-miro
+tdm-uat-web01

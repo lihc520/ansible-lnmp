@@ -1,0 +1,42 @@
+---
+- name: Check if libargon2.pc exists in /usr/local/lib/pkgconfig directory
+  stat:
+    path: "/usr/local/lib/pkgconfig/libargon2.pc"
+  register: argon2_file_stat
+
+- name: Install Argon2 library if libargon2.pc does not exist
+  when: not argon2_file_stat.stat.exists
+  block:
+    - name: Copy src
+      copy:
+        src: "files/src/argon2-{{ argon2_ver }}.tar.gz"
+        dest: "/tmp/"
+    
+    - name: Extract Argon2 archive
+      unarchive:
+        src: "/tmp/argon2-{{ argon2_ver }}.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Build and install Argon2 library
+      shell: |
+        make -j{{ THREAD }} && make install
+      args:
+        chdir: "/tmp/argon2-{{ argon2_ver }}"
+
+    - name: Create lib/pkgconfig directory
+      file:
+        path: /usr/local/lib/pkgconfig
+        state: directory
+
+    - name: Copy Argon2 PC file to /usr/local/lib/pkgconfig directory
+      copy:
+        src: "/tmp/argon2-{{ argon2_ver }}/libargon2.pc"
+        dest: "/usr/local/lib/pkgconfig/libargon2.pc"
+        remote_src: yes
+
+
+    - name: Remove temporary files
+      file:
+        path: "/tmp/argon2-{{ argon2_ver }}"
+        state: absent

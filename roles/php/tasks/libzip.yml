@@ -1,0 +1,34 @@
+---
+- name: Check if libzip is installed
+  stat:
+    path: "/usr/local/lib/libzip.la"
+  register: libzip_installed
+  ignore_errors: true
+
+- block:
+    - name: Copy src
+      copy:
+        src: "files/src/libzip-{{ libzip_ver }}.tar.gz"
+        dest: "/tmp/"
+
+    - name: Extract libzip tarball
+      unarchive:
+        src: "/tmp/libzip-{{ libzip_ver }}.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Compile and install libzip
+      shell: |
+        ./configure 
+        make -j4 
+        make install
+      args:
+        chdir: "/tmp/libzip-{{ libzip_ver }}"
+
+  when: not libzip_installed.stat.exists
+
+- name: Remove libzip tarball
+  file:
+    path: "/tmp/libzip-{{ libzip_ver }}"
+    state: absent
+  when: not libzip_installed.stat.exists

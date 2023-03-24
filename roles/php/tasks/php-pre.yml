@@ -1,0 +1,117 @@
+---
+- name: environmental test
+  block:
+    - stat:
+        path: "{{ php_root_dir }}"
+      register: m
+
+# - name: Install dependencies
+#   package:
+#     name: "{{ item }}"
+#     state: latest
+#   with_items:
+#     - openssl
+#     - libbz2-dev
+#     - libxml2-dev
+#     - libjpeg-dev
+#     - libssl-dev
+#     - libpng-dev
+#     - libfreetype6-dev
+#     - libcurl4-openssl-dev
+#     - libzip-dev
+#     - libsqlite3-dev
+#     - libgmp3-dev
+#     - make
+#     - libonig-dev
+#     - libreadline-dev
+#     - libxslt1-dev
+#     - curl
+#     - libffi-dev
+#     - gcc
+#     - g++
+#     - libsodium-dev
+#     - openssl
+#     - build-essential
+#     - libcurl3-openssl-dev
+#     - libmagickcore-dev
+#     - libmagickwand-dev
+#     - pkg-config
+#   ignore_errors: true
+#   when: ansible_os_family == "Debian" 
+
+# - name: Install dependencies RedHat
+#   package:
+#     name: "{{ item }}"
+#     state: latest
+#   with_items:
+#     - libsqlite3x-devel
+#     - libxml2 
+#     - libxml2-devel 
+#     - openssl 
+#     - openssl-devel 
+#     - libcurl 
+#     - libcurl-devel 
+#     - libjpeg 
+#     - libjpeg-devel 
+#     - libpng 
+#     - libpng-devel 
+#     - freetype 
+#     - freetype-devel 
+#     - php-mcrypt 
+#     - libmcrypt 
+#     - libmcrypt-devel 
+#     - pcre-devel
+#     - pcre 
+#     - libicu-devel 
+#     - gcc 
+#     - gcc-c++ 
+#     - autoconf  
+#     - zlib 
+#     - zlib-devel 
+#     - glibc 
+#     - glibc-devel 
+#     - glib2 
+#     - glib2-devel 
+#     - ncurses 
+#     - ncurses-devel 
+#     - curl 
+#     - curl-devel 
+#     - krb5-devel 
+#     - libidn 
+#     - libidn-devel 
+#     - openldap 
+#     - openldap-devel 
+#     - nss_ldap 
+#     - jemalloc-devel 
+#     - cmake 
+#     - boost-devel 
+#     - bison 
+#     - automake 
+#     - libevent 
+#     - libevent-devel 
+#     - gd 
+#     - gd-devel 
+#     - libtool* 
+#     - libmcrypt 
+#     - libmcrypt-devel 
+#     - mcrypt 
+#     - mhash 
+#     - libxslt 
+#     - libxslt-devel 
+#     - readline 
+#     - readline-devel 
+#     - gmp 
+#     - gmp-devel 
+#     - libcurl 
+#     - libcurl-devel 
+#     - openjpeg-devel
+#     - ImageMagick-devel
+#     - oniguruma-devel
+#   ignore_errors: true
+#   when: ansible_os_family == "RedHat"     
+
+    # - shell: "{{ php_root_dir }}/bin/php -v"
+    #   register: version
+
+    # - shell: "{{ php_root_dir }}/bin/php-config --extension-dir"
+    #   register: phpExtensionDir

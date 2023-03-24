@@ -1,0 +1,63 @@
+---
+- name: Check if libmcrypt is installed
+  stat:
+    path: "/usr/local/bin/libmcrypt-config"
+  register: libmcrypt_check
+  failed_when: false
+
+- name: Check alternate path for libmcrypt
+  stat:
+    path: "/usr/bin/libmcrypt-config"
+  register: libmcrypt_check2
+  failed_when: false
+
+- name: Install libmcrypt if not present
+  block:
+    - name: Copy src
+      copy:
+        src: files/src/libmcrypt-{{ libmcrypt_ver }}.tar.gz
+        dest: /tmp/
+
+    - name: Extract icu4c source
+      unarchive:
+        src: /tmp/libmcrypt-{{ libmcrypt_ver }}.tar.gz
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Configure libmcrypt
+      command: ./configure
+      args:
+        chdir: /tmp/libmcrypt-{{ libmcrypt_ver }}
+
+    - name: Build and install libmcrypt
+      command: make && make install
+      args:
+        chdir: /tmp/libmcrypt-{{ libmcrypt_ver }}
+
+    - name: Run ldconfig
+      command: ldconfig
+
+    - name: Build and install libltdl
+      block:
+        - name: Change to libltdl directory
+          command: pushd /tmp/libmcrypt-{{ libmcrypt_ver }}/libltdl
+
+        - name: Configure libltdl
+          command: ./configure --enable-ltdl-install
+          args:
+            chdir: /tmp/libmcrypt-{{ libmcrypt_ver }}/libltdl
+
+        - name: Build and install libltdl
+          command: make && make install
+          args:
+            chdir: /tmp/libmcrypt-{{ libmcrypt_ver }}/libltdl
+
+        - name: Return to previous directory
+          command: popd
+  when: libmcrypt_check.stat.exists == false and libmcrypt_check2.stat.exists == false
+
+- name: Remove libmcrypt source directory
+  file:
+    path: "/tmp/libmcrypt-{{ libmcrypt_ver }}"
+    state: absent
+  when: libmcrypt_check.stat.exists == false and libmcrypt_check2.stat.exists == false

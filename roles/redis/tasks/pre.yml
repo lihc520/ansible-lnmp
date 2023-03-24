@@ -1,0 +1,9 @@
+---
+- name: environmental test
+  block:
+    - stat:
+        path: "{{ redis_root_dir }}"
+      register: m
+
+    - shell: echo $(lsof -i:6379)
+      register: lsof

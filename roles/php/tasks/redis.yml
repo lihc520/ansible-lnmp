@@ -1,0 +1,17 @@
+---
+- name: Unarchive redis package
+  unarchive:
+    copy: false
+    src: "{{ redis_url }}"
+    dest: /tmp
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install redis {{ redis_version }}
+  shell: |
+    chdir="/tmp/{{ redis_version }}"
+    sudo {{ php_root_dir }}/bin/phpize
+    sudo ./configure --with-php-config={{ php_root_dir }}/bin/php-config
+    sudo make 
+    sudo make install

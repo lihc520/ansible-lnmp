@@ -1,0 +1,86 @@
+[ubuntu]
+ub20-zabbix ansible_ssh_host=192.168.23.14 ansible_ssh_user=root
+ub20-dsaj-sms01 ansible_ssh_host=192.168.23.23
+ub20-php8 ansible_ssh_host=192.168.23.15
+ub20-erp ansible_ssh_host=192.168.23.16
+wiz-ecs  ansible_ssh_host=tdm-ecs-demo.wizmacau.com ansible_ssh_user=ecs-user
+ub22-staging ansible_ssh_host=192.168.23.29 ansible_ssh_user=wiz
+ub22-miro ansible_ssh_host=192.168.28.19 ansible_ssh_user=wiz
+
+[ob]
+sport-ob1 ansible_ssh_host=172.25.3.13 ansible_ssh_user=root
+sport-ob2 ansible_ssh_host=172.25.3.14 ansible_ssh_user=root
+
+[centos7]
+c7-web ansible_ssh_host=192.168.23.19 ansible_ssh_user=root
+id-project-bak ansible_ssh_host=192.168.28.199 ansible_ssh_user=root
+id-project ansible_ssh_host=192.168.28.199 ansible_ssh_user=root
+
+[tdm-uat]
+tdm-uat-cms ansible_ssh_host=192.168.23.101 ansible_ssh_user=root
+tdm-uat-web01 ansible_ssh_host=192.168.23.87 ansible_ssh_user=wiz
+
+
+[dssopt]
+dssopt-form ansible_ssh_host=192.168.10.57 ansible_ssh_user=root
+
+[al-web]
+al-web01 ansible_ssh_host=172.20.1.56
+al-web02 ansible_ssh_host=172.20.1.57
+al-web03 ansible_ssh_host=172.20.1.58
+al-staging ansible_ssh_host=172.20.1.67
+
+[booking-ob]
+booking-db01 ansible_ssh_host=172.25.3.17
+booking-db02 ansible_ssh_host=172.25.3.17
+
+[scdt]
+scdt-new ansible_ssh_host=10.210.72.184
+scdt-dr ansible_ssh_host=192.168.28.90
+
+[zabbix]
+wiz-zabbix ansible_ssh_host=192.168.23.33 ansible_user=root
+
+[library]
+library-web01 ansible_ssh_host=172.18.195.94 ansible_user=root
+library-web02 ansible_ssh_host=172.18.195.95 ansible_user=root
+
+[macao10k-db]
+db01 ansible_ssh_host=172.25.3.60
+db02 ansible_ssh_host=172.25.3.61
+db03 ansible_ssh_host=172.25.3.62
+db04 ansible_ssh_host=172.25.3.63
+db05 ansible_ssh_host=172.25.3.64
+db06 ansible_ssh_host=172.25.3.65
+
+[marathondb]
+node7 ansible_ssh_host=172.25.3.47
+node8 ansible_ssh_host=172.25.3.48
+node9 ansible_ssh_host=172.25.3.49
+
+[aliyun]
+sport ansible_ssh_host=47.243.187.161
+
+
+[wiz-k8s]
+k8s-node1 ansible_ssh_host=192.168.20.34
+k8s-node2 ansible_ssh_host=192.168.20.35
+k8s-node3 ansible_ssh_host=192.168.20.36
+
+[wiz]
+staging ansible_ssh_host=192.168.23.25
+
+[all:vars]
+#ansible_user=webuser
+#ansible_become=yes
+#ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p -p 2023 webuser@202.86.138.179"'
+#ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p -p 8000 webuser@202.175.83.81"'
+#ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p webadmin@202.175.81.100"'
+#ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p -p 17022 root@ec2.wizmacau.com"'
+#nsible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p -p 22002 webuser@192.168.10.32"'
+
+#ansible_user=root
+#ansible_password=pzpMSrV9hx78
+#ansible_password=Abcd1234abcd!
+#ansible_sudo_pass=Abcd1234abcd!
+#ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p webadmin@202.175.81.100"'

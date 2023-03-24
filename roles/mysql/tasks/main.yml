@@ -1,0 +1,8 @@
+---
+- include_tasks: mysql-pre.yml
+
+- include_tasks: mysql-main.yml
+  when: php_ver.startswith('5.7.')
+
+- include_tasks: mysql8-main.yml
+  when: php_ver.startswith('8.')  

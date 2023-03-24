@@ -1,0 +1,21 @@
+---
+# php_version: php-7.4.29
+php_url: https://www.php.net/distributions/{{ php_version }}.tar.gz
+# php_root_dir: /usr/local/php/74
+php_extend_dir: "{{ php_root_dir }}/etc/php.d"
+# php_service: php74-fpm
+php_log_dir: /data/logs/php
+# php_sock_file: "/dev/shm/php74-fpm.sock"
+# php_error_log_file: "{{ php_log_dir }}/php74-fpm.log"
+# php_slow_log_file: "{{ php_log_dir }}/php74-slow.log"
+
+
+redis_url: https://pecl.php.net/get/{{ redis_version }}.tgz
+
+imagick_url: http://pecl.php.net/get/{{ imagick_version }}.tgz
+
+zendopcache_url: https://pecl.php.net/get/{{ zendopcache_ver }}.tgz
+
+icu_url: https://mirrors.wizcreative.com.cn/icu4c-63_1-src.tgz
+
+libzip_url: https://libzip.org/download/{{ libzip_version }}.tar.gz

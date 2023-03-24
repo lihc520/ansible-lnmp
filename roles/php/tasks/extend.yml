@@ -1,0 +1,31 @@
+---
+- name: Create extend dir
+  file:
+    path: "{{ php_extend_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create php.d config
+  template:
+    src: "php.d/{{ item }}"
+    dest: "{{ php_extend_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - 01-opcache.ini
+    - 03-imagick.ini
+    - 05-redis.ini
+  notify:
+    - reload php-fpm service 
+
+- name: Delete tmp cache
+  file:
+    path: "{{ item }}"
+    state: absent    
+  with_items:
+    - "/tmp/{{ php_version }}"
+    - "/tmp/{{ redis_version }}"
+    - "/tmp/{{ imagick_version }}"

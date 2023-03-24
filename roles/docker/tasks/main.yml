@@ -1,0 +1,29 @@
+---
+- include_tasks: docker-main.yml
+
+- name: Start docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Config docker.json
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    mode: 0644
+  notify: restart docker service
+
+# - stat:
+#     path: /usr/local/bin/ctop
+#   register: ctop_path
+
+# - name: Install ctop
+#   get_url:
+#     url: https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64
+#     dest: /usr/local/bin/ctop
+#     mode: 0755
+#     owner: root
+#     group: root
+#   when: ctop_path.stat.exists == false
+

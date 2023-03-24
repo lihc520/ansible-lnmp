@@ -1,0 +1,120 @@
+---
+# - name: Install dependencies RedHat
+#   package:
+#     name: "{{ item }}"
+#     state: latest
+#   with_items:
+#     - gcc 
+#     - gcc-c++ 
+#     - pcre 
+#     - pcre-devel 
+#     - gd-devel 
+#     - openssl 
+#     - openssl-devel 
+#     - zlib 
+#     - zlib-devel
+#   ignore_errors: true
+#   when: ansible_os_family == "RedHat" 
+
+# - name: Install dependencies
+#   package:
+#     name: "{{ item }}"
+#     state: latest
+#   with_items:
+#     - make
+#     - libssl-dev
+#     - libpcre3
+#     - libpcre3-dev
+#     - zlib1g-dev
+#     - libjemalloc-dev
+#     - gcc
+#   ignore_errors: true
+#   when: ansible_os_family == "Debian"
+
+# - name: Create redis group
+#   group:
+#     name: redis
+#     system: true
+#     state: present
+
+# - name: Create www user
+#   user:
+#     name: redis
+#     system: true
+#     shell: /bin/false
+#     group: redis
+#     createhome: no  
+
+- name: Create dir
+  file:
+    path: "{{ redis_root_dir.split('/')[0:-1] | join('/') }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create logs dir
+  file:
+    path: "{{ redis_log_dir }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: 0755
+
+- name: Create data dir
+  file:
+    path: "{{ redis_data_dir }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: 0755
+
+- name: Create config dir
+  file:
+    path: "{{ redis_root_dir }}/etc"
+    state: directory
+    owner: redis
+    group: redis
+    mode: 0755
+
+- name: Unarchive package
+  unarchive:
+    copy: false
+    src: "{{ redis_url }}"
+    dest: /tmp
+    owner: root
+    group: root
+    mode: 0755    
+
+- name: Install {{ redis_version }}
+  shell: |
+    chdir="/tmp/{{ redis_version }}"
+    make MALLOC=libc  
+    make PREFIX="{{ redis_root_dir }}" install
+
+- name: Create redis config
+  template:
+    dest: "{{ redis_root_dir }}/etc/redis.conf"
+    src: redis-cluster.conf.j2
+    owner: root
+    group: root
+    mode: 0644    
+
+- name: Create redis service
+  template:
+    dest: "/lib/systemd/system/{{ redis_service }}.service"
+    src: redis.service.j2
+    owner: root
+    group: root
+    mode: 0644    
+
+- name: Start redis service
+  service:
+    name: "{{ redis_service }}"
+    state: started
+    enabled: true
+    daemon_reload: yes    
+
+- name: update redis environment
+  shell: |
+    echo "export PATH={{ redis_root_dir }}/bin:\$PATH" >> /etc/profile    

@@ -1,0 +1,15 @@
+- name: Install mysql
+  hosts: dssopt-form
+  vars:
+    mysql_version: mysql-5.7.39-linux-glibc2.12-x86_64
+    mysql_ver: 5.7.39
+    mysql_data_dir: /data/mysql
+    mysql_root_dir: /usr/local/mysql
+    mysql_config_file: /etc/my.cnf
+    mysql_log_dir: /data/logs/mysql
+    mysql_run_dir: /var/run/mysql
+    mysql_pre_dir: /usr/share/mysql
+    mysql_root_password: cWf7vYosOE7XEG%I
+    mysql_url: https://downloads.mysql.com/archives/get/p/23/file/{{ mysql_version }}.tar.gz
+  roles:
+    - mysql

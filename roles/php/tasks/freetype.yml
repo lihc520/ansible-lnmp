@@ -1,0 +1,39 @@
+---
+- name: Check if libfreetype.la exists in FreeType installation directory
+  stat:
+    path: "{{ freetype_install_dir }}/lib/libfreetype.la"
+  register: freetype_file_stat
+
+- name: Install FreeType if libfreetype.la does not exist
+  when: not freetype_file_stat.stat.exists
+  block:
+    - name: Copy src
+      copy:
+        src: "files/src/freetype-{{ freetype_ver }}.tar.gz"
+        dest: "/tmp/"
+
+    - name: Extract FreeType archive
+      unarchive:
+        src: "/tmp/freetype-{{ freetype_ver }}.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Configure, build, and install FreeType
+      shell: |
+        ./configure --prefix={{ freetype_install_dir }} --enable-freetype-config
+        make -j{{ THREAD }} && make install
+      args:
+        chdir: "/tmp/freetype-{{ freetype_ver }}"
+
+    - name: Link FreeType include files to /usr/include directory
+      command: ln -sf {{ freetype_install_dir }}/include/freetype2/* /usr/include/
+
+    - name: Copy FreeType PC file to /usr/lib/pkgconfig directory
+      command: cp {{ freetype_install_dir }}/lib/pkgconfig/freetype2.pc /usr/lib/pkgconfig/
+      when: ansible_distribution_major_version == "7"
+
+    - name: Remove temporary files
+      file:
+        path: "/tmp/freetype-{{ freetype_ver }}"
+        state: absent
+

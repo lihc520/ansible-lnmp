@@ -1,0 +1,138 @@
+---
+- name: Create www group
+  group:
+    name: www
+    system: true
+    state: present
+
+- name: Create www user
+  user:
+    name: www
+    system: true
+    shell: /bin/false
+    group: www
+    createhome: no  
+
+- name: Create dir
+  file:
+    path: "{{ php_root_dir.split('/')[0:-1] | join('/') }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy src
+  copy:
+    src: "files/src/{{ php_version }}.tar.gz"
+    dest: "/tmp/"
+  
+
+- name: Unarchive package
+  unarchive:
+    src: /tmp/{{ php_version }}.tar.gz
+    dest: /tmp/
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: yes
+
+# - name: Download openssl cert
+#   get_url:
+#     url: https://curl.se/ca/cacert.pem
+#     dest: /etc/ssl/cert.pem
+#     mode: "0755"
+#     owner: root
+#     group: root   
+
+- name: Create logs dir
+  file:
+    path: "{{ php_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install {{ php_version }}
+  shell: |
+    chdir="/tmp/{{ php_version }}"
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+    ./configure --prefix={{ php_root_dir }} \
+        --with-config-file-path={{ php_root_dir }}/etc \
+        --with-config-file-scan-dir={{ php_root_dir }}/etc/php.d \
+        --enable-fpm \
+        --with-fpm-user=www \
+        --with-fpm-group=www \
+        --with-mhash \
+        --with-openssl \
+        --with-mysqli=mysqlnd \
+        --with-pdo-mysql=mysqlnd \
+        --with-iconv=/usr/local/libiconv \
+        --with-zlib \
+        --enable-inline-optimization \
+        --disable-debug \
+        --disable-rpath \
+        --enable-shared \
+        --enable-bcmath \
+        --enable-shmop \
+        --enable-sysvsem \
+        --with-jpeg \
+        --with-freetype \
+        --enable-mbregex \
+        --enable-mbstring \
+        --enable-ftp \
+        --enable-pcntl \
+        --enable-sockets \
+        --enable-soap \
+        --without-pear \
+        --with-gettext \
+        --enable-session \
+        --with-curl  \
+        --enable-opcache \
+        --without-gdbm \
+        --enable-fast-install \
+        --enable-fileinfo \
+        --with-zip \
+        --enable-fileinfo \
+        --enable-intl \
+        --with-gd \
+        --enable-gd-jis-conv \
+        --enable-gd-native-ttf \
+        --with-password-argon2 \
+        --with-sodium=/usr/local
+    sudo make -j4
+    sudo make install
+
+- name: Create php config
+  template:
+    dest: "{{ php_root_dir }}/etc"
+    src: php.ini
+    owner: root
+    group: root
+    mode: 0644   
+
+- name: Create php-fpm config
+  template:
+    dest: "{{ php_root_dir }}/etc/php-fpm.conf"
+    src: php-fpm.conf.j2
+    owner: root
+    group: root
+    mode: 0644 
+
+- name: Create php service file
+  template:
+    dest: "/lib/systemd/system/{{ php_service }}.service"
+    src: php-fpm.service.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start php-fpm service
+  service:
+    name: "{{ php_service }}"
+    state: started
+    enabled: true
+    daemon_reload: yes
+
+# - name: update php environment
+#   shell: |
+#     echo "export PATH={{ php_root_dir }}/bin:\$PATH" >> /etc/profile

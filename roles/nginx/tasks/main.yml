@@ -1,0 +1,7 @@
+---
+
+- include_tasks: nginx-pre.yml
+
+- include_tasks: nginx-main.yml
+  when: m.stat.exists == false
+#  when: m.stat.exists == false and lsof.stdout | length == 0

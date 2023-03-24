@@ -1,0 +1,136 @@
+---
+- name: Install dependencies
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - make
+    - libssl-dev
+    - libpcre3
+    - libpcre3-dev
+    - zlib1g-dev
+    - libjemalloc-dev
+    - gcc
+  ignore_errors: true
+  when: ansible_os_family == "Debian"
+
+- name: Install dependencies RedHat
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - gcc 
+    - gcc-c++ 
+    - pcre 
+    - pcre-devel 
+    - gd-devel 
+    - openssl 
+    - openssl-devel 
+    - zlib 
+    - zlib-devel
+  ignore_errors: true
+  when: ansible_os_family == "RedHat"  
+
+- name: Create nginx group
+  group:
+    name: www
+    system: true
+    state: present
+        
+- name: Create nginx user
+  user:
+    name: www
+    system: true
+    shell: /bin/false
+    group: www
+    createhome: no
+
+- name: Create nginx root dir
+  file:
+    path: "{{ nginx_root_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755  
+
+- name: Unarchive package
+  unarchive:
+    copy: false
+    src: "{{ nginx_url }}"
+    dest: /tmp
+    owner: root
+    group: root
+    mode: 0755    
+
+- name: Create nginx_logs forder
+  file:
+    path: "{{ nginx_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755  
+
+- name: Create nginx_vhost forder
+  file:
+    path: "{{ nginx_vhost_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755  
+
+- name: Create nginx_global forder
+  file:
+    path: "{{ nginx_global_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755   
+
+- name: Install nginx
+  shell: |
+    chdir="/tmp/{{ nginx_version }}"
+    sudo "/tmp/{{ nginx_version }}"/configure --prefix={{ nginx_root_dir }} \
+            --http-client-body-temp-path={{ nginx_root_dir }}/client_body_temp \
+            --http-proxy-temp-path={{ nginx_root_dir }}/proxy_temp \
+            --http-fastcgi-temp-path={{ nginx_root_dir }}/fastcgi_temp \
+            --http-uwsgi-temp-path={{ nginx_root_dir }}/uwsgi_temp \
+            --http-scgi-temp-path={{ nginx_root_dir }}/scgi_temp \
+            --with-http_ssl_module \
+            --with-http_stub_status_module \
+            --with-http_gzip_static_module \
+            --with-http_realip_module
+    sudo make -j4 && sudo make install
+
+- name: Create nginx link
+  file:
+    src: "{{ nginx_root_dir }}/sbin/nginx"
+    state: link
+    force: yes
+    dest: "/usr/bin/nginx"
+
+- name: Create nginx service file
+  template:
+    dest: /lib/systemd/system/nginx.service
+    src: nginx.service.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: update nginx config
+  template:
+    dest: "{{ nginx_root_dir }}/conf/nginx.conf"
+    src: nginx.conf.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start nginx service
+  service:
+    name: nginx
+    state: started
+    enabled: true
+    daemon_reload: yes
+
+    
+
+    

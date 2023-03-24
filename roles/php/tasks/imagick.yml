@@ -1,0 +1,17 @@
+---
+- name: Unarchive imagick package
+  unarchive:
+    copy: false
+    src: "{{ imagick_url }}"
+    dest: /tmp
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install {{ imagick_version }}
+  shell: |
+    chdir="/tmp/{{ imagick_version }}"
+    sudo {{ php_root_dir }}/bin/phpize
+    sudo ./configure --with-php-config={{ php_root_dir }}/bin/php-config
+    sudo make 
+    sudo make install
