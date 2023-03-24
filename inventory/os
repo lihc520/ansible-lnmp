@@ -21,8 +21,6 @@ os.centos7
 
 [os.centos7] 
 c7-web
-staging
-
 
 [os.debian:children] # debian 系 {{{
 os.ubuntu
@@ -43,8 +41,4 @@ os.u2004
 [os.u1804]
 
 [os.u2004]
-web
-wiz-k8s
-ub22-staging
-ub22-miro
-tdm-uat-web01
+ub20
