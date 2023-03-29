@@ -1,19 +1,11 @@
 #!/bin/bash
-# Author:  yeho <lj2007331 AT gmail.com>
-# BLOG:  https://linuxeye.com
-#
-# Notes: OneinStack for CentOS/RedHat 7+ Debian 8+ and Ubuntu 16+
-#
-# Project home page:
-#       https://oneinstack.com
-#       https://github.com/oneinstack/oneinstack
 
 # Close SELINUX
 setenforce 0
 sed -i 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
 
 # Custom profile
-cat > /etc/profile.d/oneinstack.sh << EOF
+cat > /etc/profile.d/init.sh << EOF
 HISTSIZE=10000
 PS1="\[\e[37;40m\][\[\e[32;40m\]\u\[\e[37;40m\]@\h \[\e[35;40m\]\W\[\e[0m\]]\\\\$ "
 HISTTIMEFORMAT="%F %T \$(whoami) "
@@ -27,7 +19,7 @@ alias grep='grep --color'
 alias egrep='egrep --color'
 alias fgrep='fgrep --color'
 EOF
-[[ "${OS}" =~ ^EulerOS$|^openEuler$ ]] && sed -i '/HISTTIMEFORMAT=/d' /etc/profile.d/oneinstack.sh
+[[ "${OS}" =~ ^EulerOS$|^openEuler$ ]] && sed -i '/HISTTIMEFORMAT=/d' /etc/profile.d/init.sh
 
 [[ ! "${OS}" =~ ^EulerOS$|^openEuler$ ]] && [ -z "$(grep ^'PROMPT_COMMAND=' /etc/bashrc)" ] && cat >> /etc/bashrc << EOF
 PROMPT_COMMAND='{ msg=\$(history 1 | { read x y; echo \$y; });logger "[euid=\$(whoami)]":\$(who am i):[\`pwd\`]"\$msg"; }'
@@ -49,7 +41,7 @@ EOF
 
 # Set timezone
 rm -rf /etc/localtime
-ln -s /usr/share/zoneinfo/${timezone} /etc/localtime
+ln -s /usr/share/zoneinfo/Asiz/Macau /etc/localtime
 
 # Set DNS
 #cat > /etc/resolv.conf << EOF
@@ -108,47 +100,5 @@ if [ -e "$(which ntpdate)" ]; then
   ntpdate -u pool.ntp.org
   [ ! -e "/var/spool/cron/root" -o -z "$(grep 'ntpdate' /var/spool/cron/root)" ] && { echo "*/20 * * * * $(which ntpdate) -u pool.ntp.org > /dev/null 2>&1" >> /var/spool/cron/root;chmod 600 /var/spool/cron/root; }
 fi
-
-# iptables
-# if [ "${iptables_flag}" == 'y' ]; then
-#   if [ -e "/etc/sysconfig/iptables" ] && [ -n "$(grep '^:INPUT DROP' /etc/sysconfig/iptables)" -a -n "$(grep 'NEW -m tcp --dport 22 -j ACCEPT' /etc/sysconfig/iptables)" -a -n "$(grep 'NEW -m tcp --dport 80 -j ACCEPT' /etc/sysconfig/iptables)" ]; then
-#     IPTABLES_STATUS=yes
-#   else
-#     IPTABLES_STATUS=no
-#   fi
-
-#   if [ "$IPTABLES_STATUS" == "no" ]; then
-#     [ -e "/etc/sysconfig/iptables" ] && /bin/mv /etc/sysconfig/iptables{,_bk}
-#     cat > /etc/sysconfig/iptables << EOF
-# # Firewall configuration written by system-config-securitylevel
-# # Manual customization of this file is not recommended.
-# *filter
-# :INPUT DROP [0:0]
-# :FORWARD ACCEPT [0:0]
-# :OUTPUT ACCEPT [0:0]
-# :syn-flood - [0:0]
-# -A INPUT -i lo -j ACCEPT
-# -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-# -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
-# -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-# -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-# -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
-# COMMIT
-# EOF
-#   fi
-
-#   FW_PORT_FLAG=$(grep -ow "dport ${ssh_port}" /etc/sysconfig/iptables)
-#   [ -z "${FW_PORT_FLAG}" -a "${ssh_port}" != "22" ] && sed -i "s@dport 22 -j ACCEPT@&\n-A INPUT -p tcp -m state --state NEW -m tcp --dport ${ssh_port} -j ACCEPT@" /etc/sysconfig/iptables
-#   /bin/cp /etc/sysconfig/{iptables,ip6tables}
-#   sed -i 's@icmp@icmpv6@g' /etc/sysconfig/ip6tables
-#   iptables-restore < /etc/sysconfig/iptables
-#   ip6tables-restore < /etc/sysconfig/ip6tables
-#   service iptables save
-#   service ip6tables save
-#   chkconfig --level 3 iptables on
-#   chkconfig --level 3 ip6tables on
-# fi
-# service rsyslog restart
-# service sshd restart
 
 . /etc/profile
