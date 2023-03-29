@@ -91,7 +91,6 @@ EOF
 sysctl -p
 
 
-
 sed -i 's@LANG=.*$@LANG="en_US.UTF-8"@g' /etc/locale.conf
 
 
