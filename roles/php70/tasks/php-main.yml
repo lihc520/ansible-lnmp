@@ -1,0 +1,146 @@
+---
+- name: Create www group
+  group:
+    name: www
+    system: true
+    state: present
+
+- name: Create www user
+  user:
+    name: www
+    system: true
+    shell: /bin/false
+    group: www
+    createhome: no  
+
+- name: Create dir
+  file:
+    path: "{{ php_root_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Download package
+  get_url:
+    url: "{{ mirrors_url }}/{{ php_version }}.tar.gz"
+    dest: "/tmp/"
+
+- name: Unarchive package
+  unarchive:
+    src: "/tmp/{{ php_version }}.tar.gz"
+    dest: "/tmp/"
+    owner: root
+    group: root
+    mode: "0755"    
+    remote_src: yes     
+
+# - name: Copy src
+#   copy:
+#     src: "files/src/{{ php_version }}.tar.gz"
+#     dest: "/tmp/"
+  
+
+# - name: Unarchive package
+#   unarchive:
+#     src: /tmp/{{ php_version }}.tar.gz
+#     dest: /tmp/
+#     owner: root
+#     group: root
+#     mode: 0755
+#     remote_src: yes
+
+# - name: Download openssl cert
+#   get_url:
+#     url: https://curl.se/ca/cacert.pem
+#     dest: /etc/ssl/cert.pem
+#     mode: "0755"
+#     owner: root
+#     group: root   
+
+- name: Create logs dir
+  file:
+    path: "{{ php_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: ub22 Install {{ php_version }}
+  when:
+    - "'22' in ansible_distribution_version"
+  shell: |
+    chdir="/tmp/{{ php_version }}"
+    sed -i '/OPENSSL_SSLV23_PADDING/i#ifdef RSA_SSLV23_PADDING' /tmp/{{ php_version }}/ext/openssl/openssl.c
+    sed -i '/OPENSSL_SSLV23_PADDING/a#endif' /tmp/{{ php_version }}/ext/openssl/openssl.c
+    export OPENSSL_CONF=/usr/lib/ssl/openssl.cnf
+    export PKG_CONFIG_PATH=/usr/local/openssl/lib/pkgconfig:/usr/local/curl/lib/pkgconfig
+    export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/local/curl/lib:/usr/local/libiconv/lib
+    PKG_CONFIG_PATH=/usr/local/openssl/lib/pkgconfig:/usr/local/curl/lib/pkgconfig
+    ./configure --prefix={{ php_root_dir }} \
+        --with-config-file-path={{ php_root_dir }}/etc \
+        --with-config-file-scan-dir={{ php_root_dir }}/etc/php.d \
+        --with-fpm-user=www --with-fpm-group=www --enable-fpm --enable-opcache --disable-fileinfo \
+        --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd \
+        --with-iconv-dir=/usr/local/libiconv --with-freetype-dir={{ freetype_install_dir }} --with-jpeg-dir --with-png-dir --with-zlib \
+        --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-exif \
+        --enable-sysvsem --enable-inline-optimization --with-curl={{ curl_install_dir }} --enable-mbregex \
+        --enable-mbstring --with-mcrypt --with-gd --enable-gd-native-ttf --with-openssl=/usr/local/openssl \
+        --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-ftp --with-xsl --enable-intl \
+        --with-gettext --enable-zip --enable-soap --disable-debug
+    sudo make -j4
+    sudo make install   
+
+- name: Install {{ php_version }}
+  when:
+    - "'22' not in ansible_distribution_version"
+  shell: |
+    chdir="/tmp/{{ php_version }}"
+    ./configure --prefix={{ php_root_dir }} \
+        --with-config-file-path={{ php_root_dir }}/etc \
+        --with-config-file-scan-dir={{ php_root_dir }}/etc/php.d \
+        --with-fpm-user=www --with-fpm-group=www --enable-fpm --enable-opcache --disable-fileinfo \
+        --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd \
+        --with-iconv-dir=/usr/local/libiconv --with-freetype-dir={{ freetype_install_dir }} --with-jpeg-dir --with-png-dir --with-zlib \
+        --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-exif \
+        --enable-sysvsem --enable-inline-optimization --with-curl={{ curl_install_dir }} --enable-mbregex \
+        --enable-mbstring --with-mcrypt --with-gd --enable-gd-native-ttf --with-openssl \
+        --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-ftp --with-xsl --enable-intl \
+        --with-gettext --enable-zip --enable-soap --disable-debug 
+    sudo make -j{{ THREAD }}
+    sudo make install
+
+- name: Create php config
+  template:
+    dest: "{{ php_root_dir }}/etc"
+    src: php.ini
+    owner: root
+    group: root
+    mode: 0644   
+
+- name: Create php-fpm config
+  template:
+    dest: "{{ php_root_dir }}/etc/php-fpm.conf"
+    src: php-fpm.conf.j2
+    owner: root
+    group: root
+    mode: 0644 
+
+- name: Create php service file
+  template:
+    dest: "/lib/systemd/system/{{ php_service }}.service"
+    src: php-fpm.service.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start php-fpm service
+  service:
+    name: "{{ php_service }}"
+    state: started
+    enabled: true
+    daemon_reload: yes
+
+# - name: update php environment
+#   shell: |
+#     echo "export PATH={{ php_root_dir }}/bin:\$PATH" >> /etc/profile

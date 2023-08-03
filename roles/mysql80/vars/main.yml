@@ -1,0 +1,13 @@
+---
+mysql_version: mysql-8.0.32-linux-glibc2.12-x86_64
+mysql_data_dir: /data/mysql
+mysql_root_dir: /usr/local/mysql
+mysql_config_file: /etc/my.cnf
+mysql_log_dir: /data/logs/mysql
+mysql_run_dir: /var/run/mysql
+mysql_pre_dir: /usr/share/mysql
+mysql_root_password: cWf7vYosOE7XEG%I
+mysql_url: https://cdn.mysql.com//Downloads/MySQL-8.0/{{ mysql_version }}.tar.xz
+mysql_pid_file: "{{ mysql_run_dir }}/mysql.pid"
+mysql_sock_file: "{{ mysql_run_dir }}/mysql.sock"
+mysql_pre_file: "{{ mysql_pre_dir }}/mysql-systemd-pre"

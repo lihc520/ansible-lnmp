@@ -1,49 +1,17 @@
 ---
-# - name: Install dependencies RedHat
-#   package:
-#     name: "{{ item }}"
-#     state: latest
-#   with_items:
-#     - gcc 
-#     - gcc-c++ 
-#     - pcre 
-#     - pcre-devel 
-#     - gd-devel 
-#     - openssl 
-#     - openssl-devel 
-#     - zlib 
-#     - zlib-devel
-#   ignore_errors: true
-#   when: ansible_os_family == "RedHat" 
+- name: Create redis group
+  group:
+    name: redis
+    system: true
+    state: present
 
-# - name: Install dependencies
-#   package:
-#     name: "{{ item }}"
-#     state: latest
-#   with_items:
-#     - make
-#     - libssl-dev
-#     - libpcre3
-#     - libpcre3-dev
-#     - zlib1g-dev
-#     - libjemalloc-dev
-#     - gcc
-#   ignore_errors: true
-#   when: ansible_os_family == "Debian"
-
-# - name: Create redis group
-#   group:
-#     name: redis
-#     system: true
-#     state: present
-
-# - name: Create www user
-#   user:
-#     name: redis
-#     system: true
-#     shell: /bin/false
-#     group: redis
-#     createhome: no  
+- name: Create www user
+  user:
+    name: redis
+    system: true
+    shell: /bin/false
+    group: redis
+    createhome: no  
 
 - name: Create dir
   file:
@@ -95,7 +63,7 @@
 - name: Create redis config
   template:
     dest: "{{ redis_root_dir }}/etc/redis.conf"
-    src: redis-cluster.conf.j2
+    src: redis.conf.j2
     owner: root
     group: root
     mode: 0644    

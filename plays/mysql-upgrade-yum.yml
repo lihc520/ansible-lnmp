@@ -1,0 +1,24 @@
+- name: Update MySQL
+  hosts: c7-ansible
+  vars:
+    password: cWf7vYosOE7XEG%I
+  tasks:
+  - name: Backup my.cnf
+    copy:
+      src: /etc/my.cnf
+      dest: /etc/my.cnf.bak
+
+  - name: Update MySQL packages
+    yum:
+      name:
+        - mysql-community-server
+        - mysql-community-libs
+        - mysql-community-client
+        - mysql-community-libs-compat.x86_64
+      state: latest
+
+  - name: Run mysql_upgrade
+    command: mysql_upgrade -u root -p'{{ password }}'
+
+  - name: Display MySQL version
+    command: mysql -V  

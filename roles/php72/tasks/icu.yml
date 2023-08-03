@@ -1,0 +1,46 @@
+---
+- name: Check if icu-config exists or version is less than 3 or Ubuntu version is 20
+  command: "icu-config --version"
+  ignore_errors: true
+  register: icu_check
+- name: Install icu4c if icu-config is missing or version is less than 3 or Ubuntu version is 20
+  block:
+  # - name: Copy src
+  #   copy:
+  #     src: "files/src/icu4c-{{ icu4c_ver }}-src.tgz"
+  #     dest: "/tmp/"
+
+  # - name: Extract icu4c source
+  #   unarchive:
+  #     src: /tmp/icu4c-{{ icu4c_ver }}-src.tgz
+  #     dest: /tmp/
+  #     remote_src: yes
+  #   when: icu_check.failed
+
+  - name: Download package
+    get_url:
+      url: "{{ mirrors_url }}/icu4c-{{ icu4c_ver }}-src.tgz"
+      dest: "/tmp/"
+    when: icu_check.failed  
+
+  - name: Unarchive package
+    unarchive:
+      src: "/tmp/icu4c-{{ icu4c_ver }}-src.tgz"
+      dest: "/tmp/"
+      owner: root
+      group: root
+      mode: "0755"    
+      remote_src: yes    
+    when: icu_check.failed  
+
+  - name: Compile and install icu4c
+    command: sh -c './configure --prefix=/usr/local && make -j{{ THREAD }} && make install'
+    args:
+      chdir: /tmp/icu/source
+    when: icu_check.failed
+    
+  - name: Remove icu4c source
+    file:
+      path: /tmp/icu
+      state: absent
+    when: icu_check.failed

@@ -1,0 +1,67 @@
+---
+- name: Check if libmcrypt is installed
+  stat:
+    path: "/usr/local/bin/libmcrypt-config"
+  register: libmcrypt_check
+  failed_when: false
+
+- name: Check alternate path for libmcrypt
+  stat:
+    path: "/usr/bin/libmcrypt-config"
+  register: libmcrypt_check2
+  failed_when: false
+
+- name: Install libmcrypt if not present
+  block:
+    # - name: Copy src
+    #   copy:
+    #     src: files/src/libmcrypt-{{ libmcrypt_ver }}.tar.gz
+    #     dest: /tmp/
+
+    # - name: Extract libmcrypt source
+    #   unarchive:
+    #     src: /tmp/libmcrypt-{{ libmcrypt_ver }}.tar.gz
+    #     dest: /tmp/
+    #     remote_src: yes
+
+    - name: Download package
+      get_url:
+        url: "{{ mirrors_url }}/libmcrypt-{{ libmcrypt_ver }}.tar.gz"
+        dest: "/tmp/"
+
+    - name: Unarchive package
+      unarchive:
+        src: "/tmp/libmcrypt-{{ libmcrypt_ver }}.tar.gz"
+        dest: "/tmp/"
+        owner: root
+        group: root
+        mode: "0755"    
+        remote_src: yes   
+
+    - name: Configure libmcrypt
+      shell: |
+        ./configure
+        make 
+        make install
+      args:
+        chdir: /tmp/libmcrypt-{{ libmcrypt_ver }}
+
+    - name: Run ldconfig
+      command: ldconfig
+
+    - name: Build and install libltdl
+      block:
+        - name: Configure libltdl
+          shell: | 
+            ./configure --enable-ltdl-install
+            make 
+            make install
+          args:
+            chdir: /tmp/libmcrypt-{{ libmcrypt_ver }}/libltdl
+  when: libmcrypt_check.stat.exists == false and libmcrypt_check2.stat.exists == false
+
+- name: Remove libmcrypt source directory
+  file:
+    path: "/tmp/libmcrypt-{{ libmcrypt_ver }}"
+    state: absent
+  when: libmcrypt_check.stat.exists == false and libmcrypt_check2.stat.exists == false

@@ -1,0 +1,7 @@
+---
+- name: Install php
+  remote_user: root 
+  become: yes
+  hosts: ub22-ansible
+  roles:
+    - php73

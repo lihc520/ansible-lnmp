@@ -1,0 +1,138 @@
+- hosts: ubuntu
+  become: yes
+  vars: 
+    mysql_version: 5.7.42-1ubuntu18.04
+    mysql_data_dir: /data/mysql
+    mysql_config_file: /etc/mysql/my.cnf
+    mysql_log_dir: /data/logs/mysql
+    mysql_run_dir: /var/run/mysqld
+    mysql_root_password: 'cWf7vYosOE7XEG%I'
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Download MySQL deb
+      shell:
+        cd /tmp/ && wget https://dev.mysql.com/get/mysql-apt-config_0.8.25-1_all.deb
+      tags: mysql config
+      
+    - name: select version os
+      shell: echo mysql-apt-config mysql-apt-config/repo-codename select bionic | sudo debconf-set-selections;
+    - name: select version mysql
+      shell: echo mysql-apt-config mysql-apt-config/select-server select mysql-5.7 | sudo debconf-set-selections;
+    - name: select tools
+      shell: echo mysql-apt-config mysql-apt-config/select-tools select Enabled | sudo debconf-set-selections;
+    - name: select preview
+      shell: echo mysql-apt-config mysql-apt-config/select-preview select Disabled | sudo debconf-set-selections;
+
+    - name: select product ok
+      shell: echo mysql-apt-config mysql-apt-config/select-product select Ok | sudo debconf-set-selections;
+
+    - name: DPKG Binary Package
+      shell: dpkg -i /tmp/mysql-apt-config_0.8.25-1_all.deb
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      register: res_apt
+   
+    - name: dump
+      debug:
+        msg: "{{ res_apt }}"
+   # update repo
+    - name: Update repo
+      shell: apt update
+      register: apt_update
+    - name: dump update
+      debug:
+        msg: "{{ apt_update }}"
+    - name: Install mysql client 5.7
+      apt:
+        name: mysql-client=5.7.42-1ubuntu18.04
+    
+    - name: Install community server
+      apt:
+        name: mysql-community-server=5.7.42-1ubuntu18.04
+
+    - name: Install mysql-server 5.7
+      apt:
+        name: mysql-server=5.7.42-1ubuntu18.04
+
+    - name: Mysql Result
+      debug:
+        msg: No password for root, just type "mysql -u root". You must set the password manually!
+
+    - name: Create run dir
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+        owner: mysql
+        group: mysql
+      with_items:
+        - "{{ mysql_log_dir }}"
+        - "{{ mysql_run_dir }}"
+        - "{{ mysql_data_dir }}"
+
+    # - name: move mysql data
+    #   shell:
+    #     cp -ar /var/lib/mysql /data/mysql
+    #   tags: mysql_config
+
+    - name: Add AppArmor rules for MySQL data and log directories
+      become: true
+      lineinfile:
+        path: /etc/apparmor.d/usr.sbin.mysqld
+        line: |
+          /data/mysql/ r,
+          /data/mysql/** rwk,
+
+          /data/logs/mysql/ r,
+          /data/logs/mysql/** rwk,
+
+          /var/run/mysql r,
+          /var/run/mysql/** rwk,
+        insertafter: '# Allow data dir access'
+        state: present
+        backup: yes 
+      tags: mysql_config 
+
+    - name: restart apparmor
+      shell: sudo systemctl restart apparmor
+
+    - name: Create mysql config
+      template:
+        dest: "{{ mysql_config_file }}"
+        src: mysql/my.cnf.j2
+        owner: root
+        group: root
+        mode: 0644  
+      tags: mysql_config  
+
+    - name: restart apparmor
+      shell: sudo systemctl restart mysql   
+
+    - name: Install pip
+      apt:
+        name: python3-pip
+        state: present
+      tags: set_password   
+
+    - name: Install MySQL Python module
+      pip:
+        name: pymysql
+        state: present 
+      tags: set_password    
+
+    # - name: Update mysql root password
+    #   shell: |
+    #     mysql -e "grant all privileges on *.* to root@'127.0.0.1' identified by '{{ mysql_root_password }}' with grant option;"
+    #     mysql -e "grant all privileges on *.* to root@'localhost' identified by '{{ mysql_root_password }}' with grant option;"
+    #     mysql -uroot -p{{ mysql_root_password }} -e "reset master;"  
+    #   tags: set_password  
+
+    - name: Set MySQL root password
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: root
+        password: "{{ mysql_root_password }}"
+        host: localhost 
+      tags: set_password   
+

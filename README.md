@@ -6,16 +6,8 @@
 
 ###### 在playbooks中调用需要安装服务对应的role以及修改对应参数
 
-## example
+# php54以及php56在ub20下不能使用
 
-```yml
-- name: Install nginx
-  hosts: c7-web
-  vars:
-    nginx_version: nginx-1.21.0
-    nginx_root_dir: /usr/local/nginx
-    nginx_log_dir: /data/logs/nginx
-    nginx_pid_file: /var/run/nginx.pid
-  roles:
-    - nginx
-```
+# 安裝前運行 ansible-playbook 00-init.yml
+
+# 暫不支持ub22安裝php7以下

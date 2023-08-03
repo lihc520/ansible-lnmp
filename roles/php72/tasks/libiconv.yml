@@ -1,0 +1,45 @@
+---
+- name: Check if libiconv.la exists
+  stat:
+    path: /usr/local/libiconv/lib/libiconv.la
+  register: libiconv_stat
+- name: Install libiconv if it doesn't exist
+  block:
+    # - name: Copy src
+    #   copy:
+    #     src: "files/src/libiconv-{{ libiconv_ver }}.tar.gz"
+    #     dest: "/tmp/"
+
+    # - name: Extract libiconv source
+    #   unarchive:
+    #     src: /tmp/libiconv-{{ libiconv_ver }}.tar.gz
+    #     dest: /tmp/
+    #     remote_src: yes
+    #   when: not libiconv_stat.stat.exists
+
+    - name: Download package
+      get_url:
+        url: "{{ mirrors_url }}/libiconv-{{ libiconv_ver }}.tar.gz"
+        dest: "/tmp/"
+
+    - name: Unarchive package
+      unarchive:
+        src: "/tmp/libiconv-{{ libiconv_ver }}.tar.gz"
+        dest: "/tmp/"
+        owner: root
+        group: root
+        mode: "0755"    
+        remote_src: yes   
+      when: not libiconv_stat.stat.exists  
+
+    - name: Compile and install libiconv
+      command: sh -c './configure --prefix=/usr/local/libiconv && make -j {{ THREAD }} && make install'
+      args:
+        chdir: /tmp/libiconv-{{ libiconv_ver }}
+      when: not libiconv_stat.stat.exists
+
+    - name: Remove libiconv source
+      file:
+        path: /tmp/libiconv-{{ libiconv_ver }}
+        state: absent
+      when: not libiconv_stat.stat.exists

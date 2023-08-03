@@ -1,0 +1,113 @@
+---
+- name: Create mysql group
+  group:
+    name: mysql
+    system: true
+    state: present
+
+- name: Create mysql user
+  user:
+    name: mysql
+    system: true
+    shell: /bin/false
+    group: mysql
+    createhome: no
+
+- name: Create dir
+  file:
+    path: "{{ mysql_root_dir.split('/')[0:-1] | join('/') }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Download package
+  get_url:
+    url: "{{ mysql_url }}"
+    dest: "/tmp/"
+    timeout: 300
+
+- name: Unarchive package
+  unarchive:
+    src: "/tmp/{{ mysql_version }}.tar.gz"
+    dest: "/tmp/"
+    owner: mysql
+    group: mysql
+    mode: "0755"    
+    remote_src: yes
+
+
+- shell: mv /tmp/{{ mysql_version }} {{ mysql_root_dir }}
+  ignore_errors: true
+
+- shell: chown -R mysql:mysql "{{ mysql_root_dir }}"
+  ignore_errors: true
+
+- name: Create mysql config
+  template:
+    dest: "{{ mysql_config_file }}"
+    src: my.cnf.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create run dir
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: mysql
+    group: mysql
+  with_items:
+    - "{{ mysql_log_dir }}"
+    - "{{ mysql_run_dir }}"
+    - "{{ mysql_data_dir }}"
+
+- name: Initialize mysql
+  shell: |
+    "{{ mysql_root_dir }}"/bin/mysqld \
+            --initialize-insecure \
+            --user=mysql \
+            --basedir={{ mysql_root_dir }} \
+            --datadir={{ mysql_data_dir }}
+  ignore_errors: true          
+
+- name: Create pre file
+  file:
+    path: "{{ mysql_pre_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- template:
+    dest: "{{ mysql_pre_file }}"
+    src: mysql-systemd-pre
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create mysql service file
+  template:
+    dest: /lib/systemd/system/mysql.service
+    src: mysql.service.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start mysql service
+  service:
+    name: mysql
+    state: started
+    enabled: true
+    daemon_reload: yes
+
+- name: Create mysql link
+  shell: ln -sf {{ mysql_root_dir }}/bin/* /usr/bin/
+
+- name: Update mysql root password
+  shell: |
+    "{{ mysql_root_dir }}"/bin/mysql -e "grant all privileges on *.* to root@'127.0.0.1' identified by '{{ mysql_root_password }}' with grant option;"
+    "{{ mysql_root_dir }}"/bin/mysql -e "grant all privileges on *.* to root@'localhost' identified by '{{ mysql_root_password }}' with grant option;"
+    "{{ mysql_root_dir }}"/bin/mysql -uroot -p{{ mysql_root_password }} -e "reset master;"
+

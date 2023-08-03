@@ -1,0 +1,48 @@
+---
+    - name: Check if libsodium is installed
+      stat:
+        path: "/usr/local/lib/libsodium.la"
+      register: libsodium_installed
+      ignore_errors: true
+
+    - block:
+        # - name: Copy src
+        #   copy:
+        #     src: "files/src/libsodium-{{ libsodium_ver }}.tar.gz"
+        #     dest: "/tmp/"
+
+        # - name: Extract libsodium tarball
+        #   unarchive:
+        #     src: "/tmp/libsodium-{{ libsodium_ver }}.tar.gz"
+        #     dest: "/tmp/"
+        #     remote_src: yes
+
+        - name: Download package
+          get_url:
+            url: "{{ mirrors_url }}/libsodium-{{ libsodium_ver }}.tar.gz"
+            dest: "/tmp/"
+
+        - name: Unarchive package
+          unarchive:
+            src: "/tmp/libsodium-{{ libsodium_ver }}.tar.gz"
+            dest: "/tmp/"
+            owner: root
+            group: root
+            mode: "0755"    
+            remote_src: yes   
+
+        - name: Compile and install libsodium
+          shell: |
+            ./configure --disable-dependency-tracking --enable-minimal
+            make 
+            make install
+          args:
+            chdir: "/tmp/libsodium-{{ libsodium_ver }}"
+
+      when: not libsodium_installed.stat.exists
+
+    - name: Remove libsodium tarball
+      file:
+        path: "/tmp/libsodium-{{ libsodium_ver }}"
+        state: absent
+      when: not libsodium_installed.stat.exists

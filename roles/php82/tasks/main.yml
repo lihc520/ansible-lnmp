@@ -1,0 +1,37 @@
+---
+
+- include_tasks: php-pre.yml
+
+- include_tasks: "icu.yml"
+  when:
+    - "'20' in ansible_distribution_version"
+
+- include_tasks: argon2.yml
+
+- include_tasks: freetype.yml
+
+- include_tasks: libcurl.yml
+
+- include_tasks: libiconv.yml
+
+- include_tasks: libsodium.yml
+
+- include_tasks: libzip.yml
+
+- include_tasks: mhash.yml
+
+- include_tasks: libmcrypt.yml
+
+- name: ldconfig local
+  shell: |
+    [ -z "`grep /usr/local/lib /etc/ld.so.conf.d/*.conf`" ] && echo '/usr/local/lib' > /etc/ld.so.conf.d/local.conf
+    ldconfig 
+
+- include_tasks: "php-main.yml"
+
+- include_tasks: redis.yml
+
+- include_tasks: imagick.yml
+
+- include_tasks: extend.yml
+

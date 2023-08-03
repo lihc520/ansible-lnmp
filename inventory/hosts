@@ -1,9 +1,10 @@
+[ansible-test]
+c7-ansible ansible_ssh_host=192.168.1.5 ansible_ssh_user=root 
+
 [ubuntu]
-ub20 ansible_ssh_host=192.168.23.88 ansible_ssh_user=root
-
-
-[centos7]
-c7-web ansible_ssh_host=192.168.23.99 ansible_ssh_user=root
+ub22-test1 ansible_ssh_host=192.168.1.16 ansible_ssh_user=wiz mysql_server_id=1 mysql_auto_increment_offset=1 mysql_master_host=192.168.23.18
+ub22-test2 ansible_ssh_host=192.168.1.18 ansible_ssh_user=wiz mysql_server_id=2 mysql_auto_increment_offset=2 mysql_master_host=192.168.23.16
 
 [all:vars]
+ansible_ssh_user=root
 

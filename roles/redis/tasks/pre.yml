@@ -7,3 +7,25 @@
 
     - shell: echo $(lsof -i:6379)
       register: lsof
+
+    - name: Install dependencies
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - libncurses5
+        - numactl
+        - libaio1
+        - libaio-dev
+      ignore_errors: true
+      when: ansible_os_family == "Debian"
+
+    - name: Install dependencies RedHat
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - libaio
+        - numactl
+      ignore_errors: true
+      when: ansible_os_family == "RedHat"   

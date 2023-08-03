@@ -1,0 +1,30 @@
+---
+php_version: php-5.6.40
+php_root_dir: /usr/local/php/56
+php_service: php56-fpm
+php_sock_file: /dev/shm/php56-fpm.sock
+php_log_dir: /data/logs/php56
+php_error_log_file: "{{ php_log_dir }}/php56-fpm.log"
+php_slow_log_file: "{{ php_log_dir }}/php56-slow.log"
+redis_version: redis-4.3.0
+imagick_version: imagick-3.7.0
+libiconv_ver: 1.16
+THREAD: 4 
+curl_ver: 7.88.1
+curl_install_dir: /usr/local/curl
+freetype_ver: 2.10.1
+freetype_install_dir: /usr/local/freetype
+argon2_ver: 20171227
+libsodium_ver: 1.0.18
+libzip_ver: 1.2.0
+mhash_ver: 0.9.9.9
+icu4c_ver: "53_2"
+libmcrypt_ver: 2.5.8
+php_extend_dir: "{{ php_root_dir }}/etc/php.d"
+php_url: https://mirrors.wizcreative.com.cn/{{ php_version }}.tar.gz
+mirrors_url: https://mirrors.wizcreative.com.cn
+redis_url: https://pecl.php.net/get/{{ redis_version }}.tgz
+imagick_url: http://pecl.php.net/get/{{ imagick_version }}.tgz
+zendopcache_url: https://pecl.php.net/get/{{ zendopcache_ver }}.tgz
+icu_url: https://mirrors.wizcreative.com.cn/icu4c-{{ icu4c_ver }}-src.tgz
+libzip_url: https://libzip.org/download/{{ libzip_version }}.tar.gz

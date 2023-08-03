@@ -2,15 +2,8 @@
 - name: Install redis
   remote_user: root
   become: yes
-  hosts: staging
+  hosts: ub22-ansible
   vars:
-    redis_version: redis-6.2.5
-    redis_url: https://download.redis.io/releases/{{ redis_version }}.tar.gz
-    redis_root_dir: /usr/local/redis
-    redis_data_dir: /var/lib/redis
-    redis_log_dir: /data/logs/redis
-    redis_run_dir: /var/run/redis
-    redis_service: redis
-    redis_passwd: "PYL5Er46W5"
+    redis_passwd: "YbkrC3xUbcMd"
   roles:
     - redis

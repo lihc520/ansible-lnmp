@@ -1,0 +1,4 @@
+---
+- include_tasks: mysql-pre.yml
+
+- include_tasks: mysql-main.yml

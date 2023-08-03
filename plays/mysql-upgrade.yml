@@ -1,0 +1,74 @@
+- name: Upgrade mysql
+  hosts: ub20-ansible
+  become: true
+  vars:
+    password: cWf7vYosOE7XEG%I
+    mysql_ver: mysql-5.7.42-linux-glibc2.12-x86_64
+  tasks:
+  - name: Download MySQL package
+    get_url:
+      url: "https://cdn.mysql.com/Downloads/MySQL-5.7/{{ mysql_ver }}.tar.gz"
+      dest: "/tmp/{{ mysql_ver }}.tar.gz"
+      timeout: 300
+
+  - name: Extract MySQL package
+    unarchive:
+      src: "/tmp/{{ mysql_ver }}.tar.gz"
+      dest: "/tmp/"
+      remote_src: true
+
+  - name: Backup MySQL configuration file
+    become: true
+    copy:
+      src: "/etc/my.cnf"
+      dest: "/etc/my.cnf.bak"
+      remote_src: true
+
+  - name: Backup databases
+    shell: "mysqldump -u root -p'{{ password }}' --single-transaction --all-databases --compress > /tmp/backdb-`date +%Y-%m-%d`.sql"
+
+  - name: Stop MySQL
+    service:
+      name: mysql
+      state: stopped
+
+  - name: Backup MySQL Dir
+    shell: | 
+      cp /usr/local/mysql /usr/local/mysql-bak
+      rm -rf /usr/local/mysql/
+
+  - name: Install MySQL
+    shell: "cp -r /tmp/{{ mysql_ver }}/* /usr/local/mysql/"
+
+  - name: Set ownership of MySQL files
+    become: true
+    file:
+      path: "/usr/local/mysql"
+      owner: mysql
+      group: mysql
+      state: directory
+      recurse: yes
+
+  - name: Restart MySQL service
+    become: true
+    service:
+      name: mysql
+      state: restarted
+
+  - name: Upgrade MySQL
+    become: true
+    shell: "mysql_upgrade -u root -p'{{ password }}' -S /var/run/mysql/mysql.sock"
+
+  - name: Create symbolic links for MySQL utilities
+    become: true
+    file:
+      src: "/usr/local/mysql/bin/{{ item }}"
+      dest: "/usr/bin/{{ item }}"
+      state: link
+    with_items:
+      - mysql
+      - mysqldump
+      - mysqladmin
+      
+  - name: Display MySQL version
+    command: mysql -V

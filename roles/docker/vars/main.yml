@@ -2,3 +2,5 @@
 #docker_root_dir: /data/docker
 log_max_file: 3
 log_max_size: 1024m
+docker_compose_version: 1.29.2
+docker_root_dir: /data/docker

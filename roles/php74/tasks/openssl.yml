@@ -1,0 +1,68 @@
+- name: Check if openssl is installed
+  stat:
+    path: "{{ openssl_install_dir }}/lib/libssl.a"
+  register: openssl_installed
+
+# - name: Uninstall OpenSSL
+#   apt:
+#     name: openssl
+#     state: absent
+
+# - name: Uninstall OpenSSL
+#   apt:
+#     name: openssl
+#     state: absent 
+
+# - name: Install dependencies RedHat
+#   package:
+#     name: "{{ item }}"
+#     state: latest
+#   with_items:
+#     - ca-certificates 
+
+- name: Install openssl if not already installed
+  when: not openssl_installed.stat.exists
+  vars:
+    thread: "{{ ansible_processor_cores }}"
+  block:
+    - name: Download package
+      get_url:
+        url: "{{ mirrors_url }}/openssl-{{ openssl_ver }}.tar.gz"
+        dest: "/tmp/"
+        timeout: 300
+        validate_certs: no  
+
+    - name: Extract openssl source
+      unarchive:
+        src: "/tmp/openssl-{{ openssl_ver }}.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Configure openssl options
+      shell: |
+        ./Configure --prefix={{ openssl_install_dir }} --openssldir={{ openssl_install_dir }} -fPIC -shared linux-x86_64
+      args:
+        chdir: "/tmp/openssl-{{ openssl_ver }}"
+
+    - name: Make openssl dependencies
+      shell: make depend
+      args:
+        chdir: "/tmp/openssl-{{ openssl_ver }}"
+
+    - name: Make and install openssl
+      shell: make -j {{ thread }} && make install
+      args:
+        chdir: "/tmp/openssl-{{ openssl_ver }}"
+
+    - name: ldconfig
+      shell: |
+        echo "/usr/local/openssl/lib" > /etc/ld.so.conf.d/openssl.conf
+        ldconfig -v    
+
+    - name: Download openssl cert
+      get_url:
+        url: https://curl.se/ca/cacert.pem
+        dest: "{{ openssl_install_dir }}/cert.pem"
+        mode: "0755"
+        owner: root
+        group: root   

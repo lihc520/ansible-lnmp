@@ -1,0 +1,7 @@
+- name: Install mysql
+  hosts: ub22-ansible
+  become: true
+  vars:
+    mysql_root_password: 'cWf7vYosOE7XEG%I'
+  roles:
+    - mysql80

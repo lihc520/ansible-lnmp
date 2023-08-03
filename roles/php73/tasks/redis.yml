@@ -1,0 +1,22 @@
+---
+- name: Download package
+  get_url:
+    url: "{{ mirrors_url }}/{{ redis_version }}.tgz"
+    dest: "/tmp/"
+
+- name: Unarchive package
+  unarchive:
+    src: "/tmp/{{ redis_version }}.tgz"
+    dest: "/tmp/"
+    owner: root
+    group: root
+    mode: "0755"    
+    remote_src: yes    
+
+- name: Install redis {{ redis_version }}
+  shell: |
+    chdir="/tmp/{{ redis_version }}"
+    sudo {{ php_root_dir }}/bin/phpize
+    sudo ./configure --with-php-config={{ php_root_dir }}/bin/php-config
+    sudo make 
+    sudo make install

@@ -1,0 +1,12 @@
+---
+- name: environmental test
+  block:
+    - stat:
+        path: "{{ php_root_dir }}"
+      register: m   
+
+#- shell: "{{ php_root_dir }}/bin/php -v"
+#  register: version
+
+#- shell: "{{ php_root_dir }}/bin/php-config --extension-dir"
+#  register: phpExtensionDir

@@ -1,8 +1,5 @@
 - name: Install docker & docker-compose 
-  become: yes
-  hosts: ub22-miro
-  vars:
-    docker_compose_version: 1.29.2
-    docker_root_dir: /data/docker
+  become: true
+  hosts: ubuntu
   roles:
     - docker

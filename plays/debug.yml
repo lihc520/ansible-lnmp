@@ -1,0 +1,30 @@
+---
+- name: debug version
+  remote_user: root
+  become: yes
+  hosts: ub22-ansible,ub20-ansible
+  tasks: 
+    - name: Get remote Ubuntu system version
+      shell: lsb_release -rs | awk -F. '{print $1}' | awk '{print $1}'
+      register: system_version
+
+    - name: Display Linux OS
+      debug:
+        var: ansible_os_family
+
+    - name: Print OS version
+      debug:
+        var: ansible_distribution_version    
+
+    - name: Print remote system version
+      debug:
+        var: system_version.stdout_lines  
+
+    - name: Set and verify environment variable
+      shell: "export LDFLAGS=-L/usr/local/openssl/lib && echo $LDFLAGS"
+      register: result
+
+    - debug:
+        var: result.stdout
+    
+

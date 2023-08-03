@@ -1,0 +1,144 @@
+---
+- name: Get primary server information
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: getprimary
+  register: primary_server_info
+
+- debug:
+    var: primary_server_info
+
+- name: Install pip
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Install MySQL Python module
+  pip:
+    name: pymysql
+    state: present
+
+- name: update mysql config
+  template:
+    dest: "{{ mysql_config_file }}"
+    src: my.cnf.j2
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start mysql service
+  service:
+    name: mysql
+    state: restarted
+    enabled: true
+    daemon_reload: yes
+
+- name: create database user for mysql replication
+  mysql_user:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ mysql_replication_user }}"
+    password: "{{ mysql_replication_password }}"
+    priv: "*.*:REPLICATION SLAVE"
+    host: "%"
+    state: present
+  tags:
+    - "mysql_replication"
+    - "create_account"
+
+- name: get mysql master status
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: getprimary
+  register: master_status
+  #delegate_to: "{{ mysql_master_host }}"
+  tags:
+    - "mysql_replication"
+
+- name: get mysql slave status
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: getreplica
+  register: slave_status
+  tags:
+    - "mysql_replication"
+
+- debug:
+    var: master_status
+  tags:
+    - "mysql_replication"
+
+- debug:
+    var: slave_status
+  tags:
+    - "mysql_replication"
+
+# 如果还没有配置master节点,is_slave参数为false
+- name: set master node info
+  when: slave_status.Is_Replica == "false"
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: changeprimary
+    master_host: "{{ mysql_master_host }}"
+    master_user: "{{ mysql_replication_user }}"
+    master_password: "{{ mysql_replication_password }}"
+    master_log_file: "{{ master_status.File }}"
+    master_log_pos: "{{ master_status.Position }}"
+  tags:
+    - "mysql_replication"
+
+# 如果已经设置了节点,先停止同步更新信息再进行同步
+- name: stop slave
+  #when: slave_status.Slave_IO_Running == "No"
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: stopreplica
+  tags:
+    - "mysql_replication"
+
+- name: update mysql slave status
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: getreplica
+  register: slave_status
+  tags:
+    - "mysql_replication"   
+
+- name: update master node info
+  #when: slave_status.Slave_IO_Running == "No" and slave_status.Slave_SQL_Running == "No"
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: changeprimary
+    master_host: "{{ mysql_master_host }}"
+    master_user: "{{ mysql_replication_user }}"
+    master_password: "{{ mysql_replication_password }}"
+    master_log_file: "{{ master_status.File }}"
+    master_log_pos: "{{ master_status.Position }}"
+  tags:
+    - "mysql_replication"
+
+- name: start slave
+  when: slave_status.Slave_IO_Running == "No" and slave_status.Slave_SQL_Running == "No"
+  mysql_replication:
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_root_user }}"
+    login_password: "{{ mysql_root_password }}"
+    mode: startreplica
+  tags:
+    - "mysql_replication"
+

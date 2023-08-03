@@ -1,0 +1,6 @@
+---
+- name: reload php-fpm service
+  service:
+    name: "{{ php_service }}"
+    state: reloaded
+    enabled: true

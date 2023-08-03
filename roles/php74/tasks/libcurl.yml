@@ -1,0 +1,57 @@
+
+- name: Check if libcurl.la exists in curl installation directory
+  stat:
+    path: "{{ curl_install_dir }}/lib/libcurl.la"
+  register: curl_file_stat
+
+- name: Extract and install curl if libcurl.la does not exist
+  when: not curl_file_stat.stat.exists
+  block:
+    # - name: Copy src
+    #   copy:
+    #     src: "files/src/curl-{{ curl_ver }}.tar.gz"
+    #     dest: "/tmp/"
+
+    # - name: Extract curl archive
+    #   unarchive:
+    #     src: /tmp/curl-{{ curl_ver }}.tar.gz
+    #     dest: /tmp/
+    #     remote_src: yes
+
+    - name: Download package
+      get_url:
+        url: "{{ mirrors_url }}/curl-{{ curl_ver }}.tar.gz"
+        dest: "/tmp/"
+
+    - name: Unarchive package
+      unarchive:
+        src: "/tmp/curl-{{ curl_ver }}.tar.gz"
+        dest: "/tmp/"
+        owner: root
+        group: root
+        mode: "0755"    
+        remote_src: yes     
+
+    - name: Configure, build and install curl
+      when:
+        - "'22' in ansible_distribution_version"
+      shell: |
+        ./configure --prefix={{ curl_install_dir }} --with-ssl={{ openssl_install_dir }}
+        make -j{{ THREAD }} && make install
+      args:
+        chdir: "/tmp/curl-{{ curl_ver }}"       
+  
+    - name: Configure, build and install curl
+      when:
+        - "'22' not in ansible_distribution_version"
+      shell: |
+        ./configure --prefix={{ curl_install_dir }} --with-ssl --with-nghttp2=/usr/local
+        make -j{{ THREAD }} && make install
+      args:
+        chdir: "/tmp/curl-{{ curl_ver }}"
+
+    - name: Remove temporary files
+      file:
+        path: "/tmp/curl-{{ curl_ver }}"
+        state: absent
+   

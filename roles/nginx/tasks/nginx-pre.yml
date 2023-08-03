@@ -5,5 +5,37 @@
         path: "{{ nginx_root_dir }}"
       register: m
 
+    - name: Install dependencies
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - make
+        - libssl-dev
+        - libpcre3
+        - libpcre3-dev
+        - zlib1g-dev
+        - libjemalloc-dev
+        - gcc
+      ignore_errors: true
+      when: ansible_os_family == "Debian"
+
+    - name: Install dependencies RedHat
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - gcc 
+        - gcc-c++ 
+        - pcre 
+        - pcre-devel 
+        - gd-devel 
+        - openssl 
+        - openssl-devel 
+        - zlib 
+        - zlib-devel
+      ignore_errors: true
+      when: ansible_os_family == "RedHat"  
+
     # - shell: echo $(lsof -i:80)
     #   register: lsof

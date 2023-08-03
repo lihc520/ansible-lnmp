@@ -1,0 +1,15 @@
+- name: Install mysql
+  hosts: ubuntu
+  become: true
+  vars:
+    mysql_root_user: root
+    mysql_root_password: 'cWf7vYosOE7XEG%I'
+    mysql_replication_user: replication
+    mysql_replication_password: P@ssw0rd
+    mysql_app_user: test
+    mysql_app_password: 'P@ssw0rd'
+    mysql_port: 3306
+    mysql_config_file: /etc/mysql/my.cnf
+    #ansible_python_interpreter: /usr/bin/python3
+  roles:
+    - mysql-slave

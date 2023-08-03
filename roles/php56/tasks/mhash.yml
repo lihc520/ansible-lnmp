@@ -1,0 +1,54 @@
+---
+- name: Check if mhash is installed
+  stat:
+    path: "/usr/local/include/mhash.h"
+  register: mhash_installed
+  ignore_errors: true
+
+- name: Check if mhash is installed system-wide
+  stat:
+    path: "/usr/include/mhash.h"
+  register: mhash_system_installed
+  ignore_errors: true
+
+- block:
+    # - name: Copy src
+    #   copy:
+    #     src: "files/src/mhash-{{ mhash_ver }}.tar.gz"
+    #     dest: "/tmp/"
+
+    # - name: Extract mhash tarball
+    #   unarchive:
+    #     src: "/tmp/mhash-{{ mhash_ver }}.tar.gz"
+    #     dest: "/tmp/"
+    #     remote_src: yes
+
+    - name: Download package
+      get_url:
+        url: "{{ mirrors_url }}/mhash-{{ mhash_ver }}.tar.gz"
+        dest: "/tmp/"
+
+    - name: Unarchive package
+      unarchive:
+        src: "/tmp/mhash-{{ mhash_ver }}.tar.gz"
+        dest: "/tmp/"
+        owner: root
+        group: root
+        mode: "0755"    
+        remote_src: yes    
+
+    - name: Compile and install mhash
+      shell: |
+        ./configure 
+        make -j4
+        make install
+      args:
+        chdir: "/tmp/mhash-{{ mhash_ver }}"
+
+  when: not (mhash_installed.stat.exists or mhash_system_installed.stat.exists)
+
+- name: Remove mhash tarball
+  file:
+    path: "/tmp/mhash-{{ mhash_ver }}"
+    state: absent
+  when: not (mhash_installed.stat.exists or mhash_system_installed.stat.exists)
