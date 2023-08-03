@@ -9,5 +9,3 @@
 # php54以及php56在ub20下不能使用
 
 # 安裝前運行 ansible-playbook 00-init.yml
-
-# 暫不支持ub22安裝php7以下
