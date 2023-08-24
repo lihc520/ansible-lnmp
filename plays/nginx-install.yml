@@ -1,5 +1,5 @@
 - name: Install nginx
   become: yes
-  hosts: ubuntu
+  hosts: docker-demo
   roles:
     - nginx

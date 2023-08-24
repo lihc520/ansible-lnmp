@@ -1,5 +1,5 @@
 - name: Install docker & docker-compose 
   become: true
-  hosts: ubuntu
+  hosts: docker-demo
   roles:
     - docker

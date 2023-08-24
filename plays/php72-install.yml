@@ -1,7 +1,7 @@
 ---
-- name: ub22-ansible,ub20-ansible
+- name: Install php72
   remote_user: root 
   become: yes
-  hosts: ub22-ansible
+  hosts: docker-demo
   roles:
     - php72

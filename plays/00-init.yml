@@ -1,5 +1,5 @@
 ---
-- hosts: ubuntu
+- hosts: docker-demo
   remote_user: root
   become: yes
   roles:
